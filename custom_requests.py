@@ -1,5 +1,6 @@
 import requests
 import sys
+import json
 from config import config
 
 def handle_errors(r):
@@ -12,6 +13,7 @@ def handle_errors(r):
         error = True
         for e in json["errors"]:
             print(e["message"])
+            print(e)
     if error:
         sys.exit(1)
 
@@ -19,12 +21,9 @@ def handle_errors(r):
 def get_headers():
     return { "Authorization": "Bearer %s" % config["wiki"]["key"] } 
 
-def escape_query(query):
-    return query.replace('"', '\"')
-
-def send_query(query):
+def send_query(query, query_vars):
     '''Returns status code, json'''
-    payload = { "query": query }
+    payload = { "query": query, "variables": query_vars}
     r = requests.post(config["wiki"]["url"], json=payload, headers = get_headers())
     handle_errors(r)
     return r.json()

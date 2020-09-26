@@ -1,13 +1,21 @@
-import graphql_requests
+import custom_requests
 
 def get_single_page(page_id):
-    query = 'query {\npages {\nsingle (id: %s) {\nid\npath\ntitle\ncontent\n}\n}\n}' % page_id
-    return graphql_requests.send_query(query)
+    query = 'query ($id: Int!) {\npages {\nsingle (id: $id) {\nid\npath\ntitle\ncontent\n}\n}\n}'
+    query_vars = {"id": page_id}
+    return custom_requests.send_query(query, query_vars)
 
 def create_page(content, title, path):
-    query = 'mutation {\npages {\ncreate(\ncontent: "%s"\ndescription: ""\neditor: "markdown"\nisPrivate: false\nisPublished: true\nlocale: "en"\npath: "%s"\npublishEndDate: ""\npublishStartDate: ""\nscriptCss: ""\nscriptJs: ""\ntags: []\ntitle: "%s"\n) {\nresponseResult {\nsucceeded\nerrorCode\nslug\nmessage\n__typename\n}\npage {\nid\nupdatedAt\n__typename\n}\n__typename\n}\n__typename\n}\n}' % ( content, path, title )
-    return graphql_requests.send_query(query)
+    query = 'mutation ($content: String!, $path: String!, $title: String!) {\npages {\ncreate(\ncontent: $content\ndescription: ""\neditor: "markdown"\nisPrivate: false\nisPublished: true\nlocale: "en"\npath: $path\npublishEndDate: ""\npublishStartDate: ""\nscriptCss: ""\nscriptJs: ""\ntags: []\ntitle: $title\n) {\nresponseResult {\nsucceeded\nerrorCode\nslug\nmessage\n__typename\n}\npage {\nid\nupdatedAt\n__typename\n}\n__typename\n}\n__typename\n}\n}'
+    query_vars = {"content": content, "title": title, "path": path}
+    return custom_requests.send_query(query, query_vars)
 
 def get_tree():
     query = 'query {\n pages {\n list (orderBy: PATH) {\n id\npath\ntitle\n}\n}\n}'
-    return graphql_requests.send_query(query)
+    query_vars = {  }
+    return custom_requests.send_query(query, query_vars)
+
+def edit_page(page_id, content, title, path):
+    query = 'mutation ($id: Int!, $content: String!, $path: String!, $title: String!){\npages {\nupdate(\nid: $id\ncontent: $content\ndescription: ""\neditor: "markdown"\nisPrivate: false\nisPublished: true\nlocale: "en"\npath: $path\npublishEndDate: ""\npublishStartDate: ""\nscriptCss: ""\nscriptJs: ""\ntags: []\ntitle: $title\n) {\nresponseResult {\nsucceeded\nerrorCode\nslug\nmessage\n__typename\n}\npage {\nid\nupdatedAt\n__typename\n}\n__typename\n}\n__typename\n}\n}'
+    query_vars = {"id": page_id, "content": content, "title": title, "path": path}
+    return custom_requests.send_query(query, query_vars)
