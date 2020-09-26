@@ -10,12 +10,15 @@ def print_item(item):
     print("| %6s | %20s | %44s |" % (item["id"], trimmmed_path, item["title"]) )
 
 def create():
-    if len(sys.argv) < 5:
-        print("Usage: ./main.py create <path> <title> <content>")
+    if len(sys.argv) < 4:
+        print("Usage: ./main.py create <path> <title> <content?>")
         sys.exit(1)
     path = sys.argv[2]
     title = sys.argv[3]
-    content = sys.argv[4]
+    if len(sys.argv) == 4: 
+        content = open_editor("/tmp/wikijscmd-create", "")
+    else:
+        content = sys.argv[4]
     response = graphql_queries.create_page(content, title, path)
     result = response["data"]["pages"]["create"]["responseResult"]
     if not result["succeeded"]:
@@ -56,6 +59,20 @@ def single():
     print("-" * 80)
     print(page["content"])
 
+def open_editor(filename, initial_body):
+    if "VISUAL" in os.environ:
+        editor = os.environ['VISUAL']
+    else:
+        editor = os.environ['EDITOR']
+    if len(initial_body) > 0:
+        with open(filename, "w") as f:
+            f.write(initial_body)
+    subprocess.run([editor, filename])
+    with open(filename, "r") as f:
+        new_body = f.read()
+    os.remove(filename)
+    return new_body
+
 def edit():
     # Load content to edit
     if len(sys.argv) < 3:
@@ -65,18 +82,9 @@ def edit():
     body = page["content"]
 
     # Open it in editor
-    if "VISUAL" in os.environ:
-        editor = os.environ['VISUAL']
-    else:
-        editor = os.environ['EDITOR']
-    edit_filename = "/tmp/wikijscmd-edit"
-    with open(edit_filename, "w") as f:
-        f.write(body)
-    subprocess.run([editor, edit_filename])
-   
+    new_body = open_editor("/tmp/wikijscmd-edit", body)
+
     # Prompt user to save it to the wiki
-    with open(edit_filename, "r") as f:
-        new_body = f.read()
     print_item(page)
     print("-" * 80)
     print(new_body)
@@ -88,13 +96,12 @@ def edit():
             print("Error!", result["message"])
             sys.exit(1)
         print(result["message"])
-    os.remove(edit_filename)
 
 def main():
     if len(sys.argv) < 2:
         print("Usage: ./main.py <command> <args>")
         print("Commands:")
-        print("\tcreate <path> <title> <content>")
+        print("\tcreate <path> <title> <content?>")
         print("\ttree <contains?>")
         print("\tsingle <id|path>")
         print("\tedit <id|path>")
