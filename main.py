@@ -5,13 +5,23 @@ import subprocess
 from config import config
 import graphql_queries
 import re
+import datetime
 
 def print_item(item):
     trimmmed_path = item["path"][:17]+"..." if len(item["path"]) > 20 else item["path"]
     print("| %6s | %20s | %44s |" % (item["id"], trimmmed_path, item["title"]) )
 
+def today(argv):
+    if len(argv) != 0:
+        print("Usage: ./main.py today")
+    today = datetime.datetime.now()
+    path = today.strftime("%Y/%b/%d").lower()
+    date_int = int(today.strftime("%d"))
+    title = today.strftime("%B ") + str(date_int)
+    create([path, title])
+
 def create(argv):
-    if len(argv) != 2 or len(argv) != 3:
+    if len(argv) < 2 or len(argv) > 3:
         print("Usage: ./main.py create <path> <title> <content?>")
         sys.exit(1)
     path = argv[0]
@@ -115,12 +125,14 @@ def main():
         print("\ttree <contains?>")
         print("\tsingle <id|path>")
         print("\tedit <id|path>")
+        print("\ttoday")
         sys.exit(0)
     commands = {
         "create": create,
         "tree": tree,
         "single": single,
-        "edit": edit
+        "edit": edit,
+        "today": today
     }
     command = sys.argv[1]
     if command in commands:
