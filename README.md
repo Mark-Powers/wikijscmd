@@ -57,5 +57,7 @@ Run `main.py` in order to use the program.
 
 ## TODO
 - Include options to always answer yes or no
-- Allow for moving pages
+- Allow for deleting pages
+- Allowing editing content from the command line (not using editor)
+- Read in content from STDIN for editing/creating pages
 
