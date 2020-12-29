@@ -16,15 +16,24 @@ def today(argv):
         print("Usage: ./main.py today")
     today = datetime.datetime.now()
     path = today.strftime("%Y/%b/%d").lower()
-    date_int = int(today.strftime("%d"))
-    title = today.strftime("%B ") + str(date_int)
-    create([path, title])
+    if get_single_page([path]) is not None:
+        edit([path])
+    else:
+        date_int = int(today.strftime("%d"))
+        title = today.strftime("%B ") + str(date_int)
+        create([path, title])
 
 def create(argv):
     if len(argv) < 2 or len(argv) > 3:
         print("Usage: ./main.py create <path> <title> <content?>")
         sys.exit(1)
     path = argv[0]
+    page = get_single_page(argv)
+    if page is not None:
+        print("Page already exists with path: %s" % argv[0])
+        if input("Edit it? (y/n) ") == "y":
+            edit([path])
+            return
     title = argv[1]
     if len(argv) == 2:
         content = open_editor("create", path, "")
@@ -40,7 +49,7 @@ def create(argv):
 def tree(argv):
     response = graphql_queries.get_tree()
     for item in response["data"]["pages"]["list"]:
-        if len(argv) == 1 and argv[0] not in item["path"]:
+        if len(argv) == 1 and not re.search(argv[0], item["path"]):
             continue
         print_item(item)
 
@@ -56,8 +65,7 @@ def get_single_page(argv):
                 argument = item["id"]
                 found = True
         if not found:
-            print("No page with path: %s" % argument)
-            sys.exit(0)
+            return None
     page_id = int(argument)
     response = graphql_queries.get_single_page(page_id)
     return response["data"]["pages"]["single"]
@@ -67,6 +75,8 @@ def single(argv):
         print("Usage: ./main.py single <id|path>")
         sys.exit(0)
     page = get_single_page(argv)
+    if page is None:
+        print("No page with path: %s" % argument)
     print("-" * 80)
     print_item(page)
     print("-" * 80)
@@ -96,12 +106,17 @@ def edit(argv):
     # Load content to edit
     if len(argv) != 1:
         print("Usage: ./main.py edit <id|path>")
-        sys.exit(0)
+        sys.exit(1)
     page = get_single_page(argv)
+    if page is None:
+        print("No page with path: %s" % argv[0])
+        if input("Create it? (y/n) ") == "y":
+            title = input("Enter the title: ").strip()
+            create([argv[0], title])
+        return
     body = page["content"]
 
     # Open it in editor
-    print(argv)
     new_body = open_editor("edit", argv[0], body)
 
     # Prompt user to save it to the wiki
@@ -122,7 +137,7 @@ def main():
         print("Usage: ./main.py <command> <args>")
         print("Commands:")
         print("\tcreate <path> <title> <content?>")
-        print("\ttree <contains?>")
+        print("\ttree <regex?>")
         print("\tsingle <id|path>")
         print("\tedit <id|path>")
         print("\ttoday")

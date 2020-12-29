@@ -21,8 +21,8 @@ prints the page contents for the given  path or ID parameters. An ID is the
 integer type for the page. Path may optionally start with a / to indicate that 
 an integer only path is not an ID.
 
-### tree PATH\_CONTAINS?
-prints out the tree of all pages where the path contains the given parameter.
+### tree PATH\_REGEX?
+prints out the tree of all pages where the path matches the regex given.
 Printed information includes the page title, ID, path.
 
 ### today
@@ -50,4 +50,9 @@ example, if your wiki is at `wiki.example.com`, the url field should be set to
 `https://wiki.example.com/graphql`.
 
 Run `main.py` in order to use the program.
+
+
+## TODO
+- Include options to always answer yes or no
+- Allow for moving pages
 
