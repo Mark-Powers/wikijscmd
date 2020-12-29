@@ -73,7 +73,7 @@ def get_single_page(argv):
 def single(argv):
     if len(argv) != 1:
         print("Usage: ./main.py single <id|path>")
-        sys.exit(0)
+        sys.exit(1)
     page = get_single_page(argv)
     if page is None:
         print("No page with path: %s" % argument)
@@ -81,6 +81,23 @@ def single(argv):
     print_item(page)
     print("-" * 80)
     print(page["content"])
+
+def move(argv):
+    if len(argv) != 2:
+        print("Usage: ./main.py move <src> <dest>")
+        sys.exit(1)
+    source = argv[0]
+    dest = argv[1]
+    page = get_single_page([source])
+    if page is None:
+        print("Source page %s does not exist" % source)
+        sys.exit(1)
+    response = graphql_queries.move_page(page["id"], dest)
+    result = response["data"]["pages"]["move"]["responseResult"]
+    if not result["succeeded"]:
+        print("Error!", result["message"])
+        sys.exit(1)
+    print(result["message"])
 
 def clean_filename(pathname):
     pathname = str(pathname).strip().replace('/', '_')
@@ -141,13 +158,15 @@ def main():
         print("\tsingle <id|path>")
         print("\tedit <id|path>")
         print("\ttoday")
+        print("\tmove <source_path|id> <dest_path>")
         sys.exit(0)
     commands = {
         "create": create,
         "tree": tree,
         "single": single,
         "edit": edit,
-        "today": today
+        "today": today,
+        "move": move
     }
     command = sys.argv[1]
     if command in commands:

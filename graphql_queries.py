@@ -19,3 +19,23 @@ def edit_page(page_id, content, title, path):
     query = 'mutation ($id: Int!, $content: String!, $path: String!, $title: String!){\npages {\nupdate(\nid: $id\ncontent: $content\ndescription: ""\neditor: "markdown"\nisPrivate: false\nisPublished: true\nlocale: "en"\npath: $path\npublishEndDate: ""\npublishStartDate: ""\nscriptCss: ""\nscriptJs: ""\ntags: []\ntitle: $title\n) {\nresponseResult {\nsucceeded\nerrorCode\nslug\nmessage\n__typename\n}\npage {\nid\nupdatedAt\n__typename\n}\n__typename\n}\n__typename\n}\n}'
     query_vars = {"id": page_id, "content": content, "title": title, "path": path}
     return custom_requests.send_query(query, query_vars)
+
+def move_page(page_id, destination_path):
+    query = '''mutation ($id: Int!, $destinationPath: String!, $destinationLocale: String!) {
+      pages {
+        move(id: $id, destinationPath: $destinationPath, destinationLocale: $destinationLocale) {
+          responseResult {
+            succeeded
+            errorCode
+            slug
+            message
+            __typename
+          }
+          __typename
+        }
+        __typename
+      }
+    }'''
+    query_vars = {"id": page_id, "destinationPath": destination_path, "destinationLocale": "en"}
+    return custom_requests.send_query(query, query_vars)
+

@@ -30,6 +30,9 @@ Creates a page with the path `YYYY/MM/DD` and title as the date name. For
 example, if the date is January 1, 1970, this is equivalent of running the
 command `create 1970/01/01 "Janurary 1"`.
 
+### move (PATH|ID) DEST\_PATH
+Moves a page identified by the path or ID given to the destination path.
+
 ## Installation
 Clone the repository or download the source code.
 
