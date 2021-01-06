@@ -15,7 +15,7 @@ def today(argv):
     if len(argv) != 0:
         print("Usage: ./main.py today")
     today = datetime.datetime.now()
-    path = today.strftime("%Y/%b/%d").lower()
+    path = today.strftime("journal/%Y/%b/%d").lower()
     if get_single_page([path]) is not None:
         edit([path])
     else:
