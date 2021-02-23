@@ -109,7 +109,7 @@ def open_editor(action, pathname, initial_body):
         editor = os.environ['VISUAL']
     else:
         editor = os.environ['EDITOR']
-    filename = "/tmp/wikijscmd-"+action+"-"+clean_filename(pathname)
+    filename = "/tmp/wikijscmd-"+action+"-"+clean_filename(pathname)+".md"
     if len(initial_body) > 0:
         with open(filename, "w") as f:
             f.write(initial_body)
