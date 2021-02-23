@@ -2,43 +2,39 @@
 import sys
 import os
 import subprocess
-from config import config
-import graphql_queries
 import re
 import datetime
+import argparse
+
+from config import config
+import graphql_queries
 
 def print_item(item):
     trimmmed_path = item["path"][:17]+"..." if len(item["path"]) > 20 else item["path"]
     print("| %6s | %20s | %44s |" % (item["id"], trimmmed_path, item["title"]) )
 
-def today(argv):
-    if len(argv) != 0:
-        print("Usage: ./main.py today")
+def today(args):
     today = datetime.datetime.now()
     path = today.strftime("journal/%Y/%b/%d").lower()
-    if get_single_page([path]) is not None:
-        edit([path])
+    if get_single_page(path) is not None:
+        edit({"path": path})
     else:
         date_int = int(today.strftime("%d"))
         title = today.strftime("%B ") + str(date_int)
         create([path, title])
 
-def create(argv):
-    if len(argv) < 2 or len(argv) > 3:
-        print("Usage: ./main.py create <path> <title> <content?>")
-        sys.exit(1)
-    path = argv[0]
-    page = get_single_page(argv)
+def create(args):
+    page = get_single_page(args["path"])
     if page is not None:
-        print("Page already exists with path: %s" % argv[0])
+        print("Page already exists with path: %s" % args["path"])
         if input("Edit it? (y/n) ") == "y":
-            edit([path])
+            edit(args)
             return
-    title = argv[1]
-    if len(argv) == 2:
+    title = args["title"]
+    if "content" in args:
         content = open_editor("create", path, "")
     else:
-        content = argv[2]
+        content = args["content"]
     response = graphql_queries.create_page(content, title, path)
     result = response["data"]["pages"]["create"]["responseResult"]
     if not result["succeeded"]:
@@ -46,49 +42,38 @@ def create(argv):
         sys.exit(1)
     print(result["message"])
 
-def tree(argv):
+def tree(args):
     response = graphql_queries.get_tree()
+    regex = " ".join(args["regex"])
     for item in response["data"]["pages"]["list"]:
-        if len(argv) == 1 and not re.search(argv[0], item["path"]):
+        if not re.search(regex, item["path"]):
             continue
         print_item(item)
 
-def get_single_page(argv):
-    argument = argv[0]
-    if not argument.isdigit():
-        # Strip leading slash
-        if argument.startswith("/"):
-            argument = argument[1:]
-        found = False
-        for item in graphql_queries.get_tree()["data"]["pages"]["list"]:
-            if argument == item["path"]:
-                argument = item["id"]
-                found = True
-        if not found:
-            return None
-    page_id = int(argument)
-    response = graphql_queries.get_single_page(page_id)
-    return response["data"]["pages"]["single"]
+def get_single_page(path):
+    if path.startswith("/"):
+        path = path[1:]
+    for item in graphql_queries.get_tree()["data"]["pages"]["list"]:
+        if path == item["path"]:
+            page_id = int(item["id"])
+            response = graphql_queries.get_single_page(page_id)
+            return response["data"]["pages"]["single"]
+    return None
 
-def single(argv):
-    if len(argv) != 1:
-        print("Usage: ./main.py single <id|path>")
-        sys.exit(1)
-    page = get_single_page(argv)
+def single(args):
+    page = get_single_page(args["path"])
     if page is None:
-        print("No page with path: %s" % argument)
+        print("No page with path: %s" % args["path"])
+        sys.exit(1)
     print("-" * 80)
     print_item(page)
     print("-" * 80)
     print(page["content"])
 
-def move(argv):
-    if len(argv) != 2:
-        print("Usage: ./main.py move <src> <dest>")
-        sys.exit(1)
-    source = argv[0]
-    dest = argv[1]
-    page = get_single_page([source])
+def move(args):
+    source = args["src_path"]
+    dest = args["dst_path"]
+    page = get_single_page(source)
     if page is None:
         print("Source page %s does not exist" % source)
         sys.exit(1)
@@ -119,22 +104,18 @@ def open_editor(action, pathname, initial_body):
     os.remove(filename)
     return new_body
 
-def edit(argv):
-    # Load content to edit
-    if len(argv) != 1:
-        print("Usage: ./main.py edit <id|path>")
-        sys.exit(1)
-    page = get_single_page(argv)
+def edit(args):
+    page = get_single_page(args["path"])
     if page is None:
-        print("No page with path: %s" % argv[0])
+        print("No page with path: %s" % args["path"])
         if input("Create it? (y/n) ") == "y":
             title = input("Enter the title: ").strip()
-            create([argv[0], title])
+            create({"path": args["path"], "title": title})
         return
     body = page["content"]
 
     # Open it in editor
-    new_body = open_editor("edit", argv[0], body)
+    new_body = open_editor("edit", args["path"], body)
 
     # Prompt user to save it to the wiki
     print_item(page)
@@ -149,31 +130,50 @@ def edit(argv):
             sys.exit(1)
         print(result["message"])
 
+def no_command(args):
+    print("Please use a command")
+
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: ./main.py <command> <args>")
-        print("Commands:")
-        print("\tcreate <path> <title> <content?>")
-        print("\ttree <regex?>")
-        print("\tsingle <id|path>")
-        print("\tedit <id|path>")
-        print("\ttoday")
-        print("\tmove <source_path|id> <dest_path>")
-        sys.exit(0)
-    commands = {
-        "create": create,
-        "tree": tree,
-        "single": single,
-        "edit": edit,
-        "today": today,
-        "move": move
-    }
-    command = sys.argv[1]
-    if command in commands:
-        # Pass in arguments after the command
-        commands[command](sys.argv[2:])
+    parser = argparse.ArgumentParser("wikijscmd")
+    #parser.add_argument("command",
+    #        choices=["create", "tree", "single", "edit", "today", "move"])
+    parser.set_defaults(command=None)
+    subparsers = parser.add_subparsers()
+
+    parser_create = subparsers.add_parser("create", help="create a page")
+    parser_create.add_argument("path", type=str, help="the path of the new page")
+    parser_create.add_argument("title", type=str, help="the title of the new page")
+    parser_create.add_argument("content", nargs='*', type=str, help="optional page content")
+    parser_create.set_defaults(command=create)
+
+    parser_tree = subparsers.add_parser("tree", help="search in the page tree")
+    parser_tree.add_argument("regex", nargs='*', type=str, help="optional regex to search paths with")
+    parser_tree.set_defaults(command=tree)
+
+    parser_single = subparsers.add_parser("single", help="view a single page")
+    parser_single.add_argument("path", type=str, help="the path of the page to view")
+    parser_single.set_defaults(command=single)
+
+    parser_edit = subparsers.add_parser("edit", help="edit a page")
+    parser_edit.add_argument("path", type=str, help="the path of the page to edit")
+    parser_edit.set_defaults(command=edit)
+
+    parser_today = subparsers.add_parser("today", help="create/edit the journal page for today")
+    parser_today.set_defaults(command=today)
+
+    parser_move = subparsers.add_parser("move", help="move a page")
+    parser_move.add_argument("src_path", type=str, help="the path of the page to move")
+    parser_move.add_argument("dst_path", type=str, help="the destination path")
+    parser_move.set_defaults(command=move)
+
+    args = vars(parser.parse_args())
+    callback = args["command"]
+    if callback is None:
+        parser.print_help()
     else:
-        print("Unknown command: %s" % sys.argv[1])
+        del args["command"]
+        callback(args)
+
 
 if __name__ == "__main__":
     main()
