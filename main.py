@@ -1,4 +1,5 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
+
 import sys
 import os
 import subprocess
@@ -14,6 +15,11 @@ def print_item(item):
     print("| %6s | %20s | %44s |" % (item["id"], trimmmed_path, item["title"]) )
 
 def today(args):
+    """
+    Creates a journal page with the path "journal/YYYY/MM/DD"
+
+    args: used
+    """
     today = datetime.datetime.now()
     path = today.strftime("journal/%Y/%b/%d").lower()
     if get_single_page(path) is not None:
@@ -24,6 +30,14 @@ def today(args):
         create([path, title])
 
 def create(args):
+    """
+    Create a page with the given args.
+
+    args is a dictionary with the following keys:
+        path: the path to create a page with
+        title: the title for the page
+        content (optional): the content for the page. If not present, editor is opened
+    """
     page = get_single_page(args["path"])
     if page is not None:
         print("Page already exists with path: %s" % args["path"])
@@ -31,6 +45,7 @@ def create(args):
             edit(args)
             return
     title = args["title"]
+    path = args["path"]
     if "content" in args:
         content = open_editor("create", path, "")
     else:
@@ -43,6 +58,12 @@ def create(args):
     print(result["message"])
 
 def tree(args):
+    """
+    Finds pages based on a path search
+
+    args is a dictionary with the following keys:
+        regex: the regex to search paths with
+    """
     response = graphql_queries.get_tree()
     regex = " ".join(args["regex"])
     for item in response["data"]["pages"]["list"]:
@@ -51,6 +72,9 @@ def tree(args):
         print_item(item)
 
 def get_single_page(path):
+    """
+    Gets the page from the wiki with the given path
+    """
     if path.startswith("/"):
         path = path[1:]
     for item in graphql_queries.get_tree()["data"]["pages"]["list"]:
@@ -61,6 +85,12 @@ def get_single_page(path):
     return None
 
 def single(args):
+    """
+    View a page with the given path
+
+    args is a dictionary with the following keys:
+        path: the path of the page
+    """
     page = get_single_page(args["path"])
     if page is None:
         print("No page with path: %s" % args["path"])
@@ -71,6 +101,13 @@ def single(args):
     print(page["content"])
 
 def move(args):
+    """
+    Move a page from one path to another
+
+    args is a dictionary with the following keys:
+        src_path: page of existing path
+        dst_path: path page should be moved to
+    """
     source = args["src_path"]
     dest = args["dst_path"]
     page = get_single_page(source)
@@ -85,11 +122,18 @@ def move(args):
     print(result["message"])
 
 def clean_filename(pathname):
+    """
+    Clean the path so that it can be used as a filename
+    """
     pathname = str(pathname).strip().replace('/', '_')
     pathname = re.sub(r'\W', '', pathname)
     return pathname[:200]
 
 def open_editor(action, pathname, initial_body):
+    """
+    Open a page with the given pathname and intial_body in an editor, using
+    action in the filename. Returns the content of the edited file.
+    """
     if "VISUAL" in os.environ:
         editor = os.environ['VISUAL']
     else:
@@ -105,6 +149,12 @@ def open_editor(action, pathname, initial_body):
     return new_body
 
 def edit(args):
+    """
+    Edit a page
+
+    args is a dictionary with the following keys:
+        path: the path of the page to edit
+    """
     page = get_single_page(args["path"])
     if page is None:
         print("No page with path: %s" % args["path"])
@@ -130,13 +180,8 @@ def edit(args):
             sys.exit(1)
         print(result["message"])
 
-def no_command(args):
-    print("Please use a command")
-
 def main():
     parser = argparse.ArgumentParser("wikijscmd")
-    #parser.add_argument("command",
-    #        choices=["create", "tree", "single", "edit", "today", "move"])
     parser.set_defaults(command=None)
     subparsers = parser.add_subparsers()
 
@@ -173,7 +218,6 @@ def main():
     else:
         del args["command"]
         callback(args)
-
 
 if __name__ == "__main__":
     main()
