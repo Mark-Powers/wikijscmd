@@ -20,14 +20,15 @@ def today(args):
 
     args: used
     """
-    today = datetime.datetime.now()
-    path = today.strftime("journal/%Y/%b/%d").lower()
+    print(args)
+    t = datetime.datetime.now()
+    path = t.strftime("journal/%Y/%b/%d").lower()
     if get_single_page(path) is not None:
         edit({"path": path})
     else:
-        date_int = int(today.strftime("%d"))
-        title = today.strftime("%B ") + str(date_int)
-        create([path, title])
+        date_int = int(t.strftime("%d"))
+        title = t.strftime("%B ") + str(date_int)
+        create({"path": path, "title": title})
 
 def create(args):
     """
@@ -46,7 +47,7 @@ def create(args):
             return
     title = args["title"]
     path = args["path"]
-    if "content" in args:
+    if "content" not in args:
         content = open_editor("create", path, "")
     else:
         content = args["content"]
@@ -57,6 +58,16 @@ def create(args):
         sys.exit(1)
     print(result["message"])
 
+def get_tree(regex):
+    response = graphql_queries.get_tree()
+    regex = " ".join(regex)
+    pages = []
+    for item in response["data"]["pages"]["list"]:
+        if not re.search(regex, item["path"]):
+            continue
+        pages.append(item)
+    return pages
+
 def tree(args):
     """
     Finds pages based on a path search
@@ -64,11 +75,7 @@ def tree(args):
     args is a dictionary with the following keys:
         regex: the regex to search paths with
     """
-    response = graphql_queries.get_tree()
-    regex = " ".join(args["regex"])
-    for item in response["data"]["pages"]["list"]:
-        if not re.search(regex, item["path"]):
-            continue
+    for item in get_tree(args["regex"]):
         print_item(item)
 
 def get_single_page(path):
@@ -154,6 +161,7 @@ def edit(args):
 
     args is a dictionary with the following keys:
         path: the path of the page to edit
+        save (optional): include with any value to save without any prompt
     """
     page = get_single_page(args["path"])
     if page is None:
@@ -172,7 +180,7 @@ def edit(args):
     print("-" * 80)
     print(new_body)
     print("-" * 80)
-    if input("Save changes? (y/n) ") == "y":
+    if "save" in args or input("Save changes? (y/n) ") == "y":
         response = graphql_queries.edit_page(page["id"], new_body, page["title"], page["path"])
         result = response["data"]["pages"]["update"]["responseResult"]
         if not result["succeeded"]:

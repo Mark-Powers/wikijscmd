@@ -54,6 +54,21 @@ example, if your wiki is at `wiki.example.com`, the url field should be set to
 
 Run `main.py` in order to use the program.
 
+Example uses:
+- Create a page `./main.py create 2021/02/26 "February 26"`
+- Edit a page `./main.py edit 2021/02/26`
+
+## Ncurses TUI
+A ncurses TUI beta client also is provided, though it is still a work in
+progress. It is run through the file `ncurses.py`
+
+Keys:
+- `j`/down: move down
+- `k`/up: move up
+- `t`: create/edit page for today
+- `c`: create a page
+- `e`: edit page selected
+- `q`: quit
 
 ## TODO
 - Include options to always answer yes or no
