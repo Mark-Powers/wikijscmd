@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
 import os
@@ -9,26 +9,12 @@ import argparse
 
 from config import config
 import graphql_queries
+import journal
 
 def print_item(item):
     trimmmed_path = item["path"][:17]+"..." if len(item["path"]) > 20 else item["path"]
     print("| %6s | %20s | %44s |" % (item["id"], trimmmed_path, item["title"]) )
 
-def today(args):
-    """
-    Creates a journal page with the path "journal/YYYY/MM/DD"
-
-    args: used
-    """
-    print(args)
-    t = datetime.datetime.now()
-    path = t.strftime("journal/%Y/%b/%d").lower()
-    if get_single_page(path) is not None:
-        edit({"path": path})
-    else:
-        date_int = int(t.strftime("%d"))
-        title = t.strftime("%B ") + str(date_int)
-        create({"path": path, "title": title})
 
 def create(args):
     """
@@ -102,9 +88,10 @@ def single(args):
     if page is None:
         print("No page with path: %s" % args["path"])
         sys.exit(1)
-    print("-" * 80)
-    print_item(page)
-    print("-" * 80)
+    if False: # not args["skip-header"]:
+        print("-" * 80)
+        print_item(page)
+        print("-" * 80)
     print(page["content"])
 
 def move(args):
@@ -212,12 +199,15 @@ def main():
     parser_edit.set_defaults(command=edit)
 
     parser_today = subparsers.add_parser("today", help="create/edit the journal page for today")
-    parser_today.set_defaults(command=today)
+    parser_today.set_defaults(command=journal.today)
 
     parser_move = subparsers.add_parser("move", help="move a page")
     parser_move.add_argument("src_path", type=str, help="the path of the page to move")
     parser_move.add_argument("dst_path", type=str, help="the destination path")
     parser_move.set_defaults(command=move)
+
+    parser_journal = subparsers.add_parser("journal", help="create journal pages")
+    parser_journal.set_defaults(command=journal.fill_in_pages)
 
     args = vars(parser.parse_args())
     callback = args["command"]
