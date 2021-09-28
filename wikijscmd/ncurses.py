@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-import main
+
 import curses
 from curses import wrapper
+
+from wikijscmd import util
 
 def pager(stdscr, lst):
     '''
@@ -80,7 +82,7 @@ def m(stdscr):
     """
     The main method for the ncurses wrapper
     """
-    items = main.get_tree("")
+    items = util.get_tree("")
     while True:
         ret = pager(stdscr, [x["path"] + "\t" + x["title"] for x in items])
         if ret["action"] == "select":
@@ -99,8 +101,3 @@ def m(stdscr):
         else:
             break
 
-# Run the ncurses wrapper
-try:
-    wrapper(m)
-except Exception as e:
-    raise e

@@ -1,8 +1,8 @@
 import sys
 
-import graphql_queries
+from wikijscmd import graphql_queries
 from datetime import datetime, timedelta
-from util import clean_filename, get_tree, open_editor, get_single_page, print_item, args_for_date
+from wikijscmd.util import clean_filename, get_tree, open_editor, get_single_page, print_item, args_for_date
 
 def create(path, title, content=None):
     page = get_single_page(path)

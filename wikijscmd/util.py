@@ -1,4 +1,4 @@
-import graphql_queries
+from wikijscmd import graphql_queries
 import subprocess
 import re
 import os

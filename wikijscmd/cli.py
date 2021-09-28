@@ -3,10 +3,10 @@
 import sys
 import argparse
 
-from config import config
-from commands import create, edit, single, tree, today, move, fill_in_pages
+from wikijscmd.config import config
+from wikijscmd.commands import create, edit, single, tree, today, move, fill_in_pages
 
-def main():
+def cli():
     parser = argparse.ArgumentParser("wikijscmd")
     parser.set_defaults(command=None)
     subparsers = parser.add_subparsers()

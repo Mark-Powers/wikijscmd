@@ -1,4 +1,4 @@
-import custom_requests
+from wikijscmd import custom_requests
 
 def get_single_page(page_id):
     query = 'query ($id: Int!) {\npages {\nsingle (id: $id) {\nid\npath\ntitle\ncontent\n}\n}\n}'

@@ -1,7 +1,7 @@
 import requests
 import sys
 import json
-from config import config
+from wikijscmd.config import config
 
 def handle_errors(r):
     error = False
