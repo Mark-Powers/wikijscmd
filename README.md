@@ -41,7 +41,7 @@ Install python3, and pip for python3 for your system.
 Install the dependencies
 `pip3 install -r requirements.txt`
 
-Create a file `config.ini` with the following information:
+Create a file `/etc/wikijscmd/config.ini` with the following information:
 ```
 [wiki]
 key=YOUR_KEY_HERE
