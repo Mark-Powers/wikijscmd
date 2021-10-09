@@ -3,7 +3,7 @@
 import curses
 from curses import wrapper
 
-from wikijscmd import util
+from wikijscmd import util, commands
 
 def pager(stdscr, lst):
     '''
@@ -87,17 +87,22 @@ def m(stdscr):
         ret = pager(stdscr, [x["path"] + "\t" + x["title"] for x in items])
         if ret["action"] == "select":
             selected = items[ret["index"]]
-            ret = pager(stdscr, main.get_single_page(selected["path"])["content"].split("\n"))
+            ret = pager(stdscr, util.get_single_page(selected["path"])["content"].split("\n"))
         elif ret["action"] == "edit":
             selected = items[ret["index"]]
-            main.edit({"path":selected["path"], "save": True})
+            commands.edit(selected["path"], True)
         elif ret["action"] == "create":
             stdscr.clear()
             title = enter_value(stdscr, "Enter title: ", 0)
             path = enter_value(stdscr, "Enter path: ", 1)
-            main.create({"path": path, "title": title})
+            commands.create(path, title)
         elif ret["action"] == "today":
-            main.today({})
+            commands.today()
         else:
             break
 
+def tui():
+    try:
+        wrapper(m)
+    except Exception as e:
+        raise e

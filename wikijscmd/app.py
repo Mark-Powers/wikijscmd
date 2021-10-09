@@ -5,8 +5,9 @@ import argparse
 
 from wikijscmd.config import config
 from wikijscmd.commands import create, edit, single, tree, today, move, fill_in_pages
+from wikijscmd.tui import tui
 
-def cli():
+def main():
     parser = argparse.ArgumentParser("wikijscmd")
     parser.set_defaults(command=None)
     subparsers = parser.add_subparsers()
@@ -40,6 +41,9 @@ def cli():
     parser_journal = subparsers.add_parser("journal", help="create journal pages")
     parser_journal.set_defaults(command=fill_in_pages)
 
+    parser_tui = subparsers.add_parser("tui", help="lauch a ncurses interface")
+    parser_tui.set_defaults(command=tui)
+
     args = vars(parser.parse_args())
     callback = args["command"]
     if callback is None:
@@ -47,6 +51,3 @@ def cli():
     else:
         del args["command"]
         callback(**args)
-
-if __name__ == "__main__":
-    main()

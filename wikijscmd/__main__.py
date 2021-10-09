@@ -1,4 +1,6 @@
-import wikijscmd
+import sys
+
+from . import app
 
 if __name__ == '__main__':
-    wikijscmd.main()
+    app.main()

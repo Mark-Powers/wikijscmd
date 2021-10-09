@@ -3,13 +3,28 @@
 A client to use wiki.js over the command line. Supports creating, editing,
 and viewing pages, and viewing the wiki file tree.
 
+## Installation
+
+Install the module: `python3 -m pip install wikijscmd`
+
+Create a file `/etc/wikijscmd/config.ini` with the following information:
+```
+[wiki]
+key=YOUR_KEY_HERE
+url=YOUR_GRAPHQL_ENDPOINT_HERE
+```
+The key is provided via the admin panel under the API access tab. The URL
+for wiki.js is typically the URL of your wiki with the path `/graphql`. For
+example, if your wiki is at `wiki.example.com`, the url field should be set to
+`https://wiki.example.com/graphql`.
+
 ## Usage
 wikijscmd supports the following commands:
 
 ### create PATH TITLE CONTENT?
-creates a page with the given page, title, and content. Content is optional, 
-if none is provided, then an editor will open based on the VISUAL or EDITOR 
-variable. 
+creates a page with the given page, title, and content. Content is optional,
+if none is provided, then an editor will open based on the VISUAL or EDITOR
+variable.
 
 ### edit (PATH|ID)
 opens a page in the editor based on VISUAL or EDITOR variables for the given 
@@ -32,31 +47,6 @@ command `create 1970/01/01 "Janurary 1"`.
 
 ### move (PATH|ID) DEST\_PATH
 Moves a page identified by the path or ID given to the destination path.
-
-## Installation
-Clone the repository or download the source code.
-
-Install python3, and pip for python3 for your system.
-
-Install the dependencies
-`pip3 install -r requirements.txt`
-
-Create a file `/etc/wikijscmd/config.ini` with the following information:
-```
-[wiki]
-key=YOUR_KEY_HERE
-url=YOUR_GRAPHQL_ENDPOINT_HERE
-```
-The key is provided via the admin panel under the API access tab. The URL
-for wiki.js is typically the URL of your wiki with the path `/graphql`. For
-example, if your wiki is at `wiki.example.com`, the url field should be set to
-`https://wiki.example.com/graphql`.
-
-Run `main.py` in order to use the program.
-
-Example uses:
-- Create a page `./main.py create 2021/02/26 "February 26"`
-- Edit a page `./main.py edit 2021/02/26`
 
 ## Ncurses TUI
 A ncurses TUI beta client also is provided, though it is still a work in
